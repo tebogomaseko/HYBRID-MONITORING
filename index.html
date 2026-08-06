@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Hybrid Solar-Grid EM&MS - Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(-45deg, #020617, #0f172a, #111827, #1e293b);
+      background-size: 400% 400%;
+      animation: bgMove 12s ease infinite;
+    }
+
+    @keyframes bgMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      width: 420px;
+      padding: 45px;
+      background: rgba(30, 41, 59, 0.88);
+      border-radius: 25px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.25);
+      transition: .4s;
+    }
+
+    .container:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 0 40px rgba(56, 189, 248, .6);
+    }
+
+    .logo { font-size: 60px; text-align: center; margin-bottom: 15px; }
+    h1 { text-align: center; color: #38bdf8; margin-bottom: 10px; }
+    .subtitle { text-align: center; color: #cbd5e1; margin-bottom: 35px; font-size: 15px; }
+    label { display: block; margin-bottom: 8px; color: white; font-weight: 600; }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 12px;
+      outline: none;
+      background: #334155;
+      color: white;
+      font-size: 15px;
+      transition: .3s;
+    }
+
+    input:focus { box-shadow: 0 0 15px #38bdf8; }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      background: #38bdf8;
+      color: #020617;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: .3s;
+    }
+
+    button:hover { background: #22c55e; transform: scale(1.03); }
+    #message { margin-top: 18px; text-align: center; font-weight: bold; color: #f87171; }
+    .footer { margin-top: 30px; text-align: center; font-size: 13px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="logo">🏠</div>
+    <h1>Smart Hybrid Solar–Grid</h1>
+    <div class="subtitle">Energy Management & Monitoring System</div>
+
+    <label>Username</label>
+    <input type="text" id="Usernameinput" placeholder="Enter username">
+
+    <label>Password</label>
+    <input type="password" id="Passwordinput" placeholder="Enter password">
+
+    <button onclick="credentialsverification()">Login</button>
+    <p id="message"></p>
+
+    <div class="footer">ESP32 • ATmega328P • Cloud Dashboard</div>
+  </div>
+
+  <script>
+    function credentialsverification() {
+      let username = document.getElementById("Usernameinput").value;
+      let password = document.getElementById("Passwordinput").value;
+
+      if (username === "Tebogo" && password === "user80") {
+        // Redirects to home.html on the same server
+        window.location.href = "HOME.html";
+      } else {
+        document.getElementById("message").innerText = "Incorrect username or password.";
+      }
+    }
+  </script>
+
+</body>
+</html>

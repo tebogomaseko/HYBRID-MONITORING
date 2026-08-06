@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hybrid Solar-Grid Energy Management System</title>
+
+  <!-- Firebase JavaScript SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 20px;
+      color: white;
+      background: linear-gradient(-45deg, #020617, #0f172a, #111827, #1e293b);
+      background-size: 400% 400%;
+      animation: bgMove 12s ease infinite;
+    }
+
+    @keyframes bgMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .header h1 { color: #38bdf8; font-size: 2rem; }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #1e293b;
+      padding: 12px 20px;
+      border-radius: 30px;
+    }
+
+    .indicator { width: 15px; height: 15px; border-radius: 50%; }
+    .online {
+      background: #22c55e;
+      box-shadow: 0 0 20px #22c55e;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      padding: 25px;
+      border-radius: 20px;
+      transition: all 0.4s ease;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+    }
+
+    .card:hover { transform: translateY(-12px) scale(1.03); }
+    .solar-card { background: linear-gradient(135deg, #78350f, #f59e0b); }
+    .solar-card:hover { box-shadow: 0 0 35px #facc15; }
+    .battery-card { background: linear-gradient(135deg, #14532d, #22c55e); }
+    .battery-card:hover { box-shadow: 0 0 35px #22c55e; }
+    .grid-card { background: linear-gradient(135deg, #1e3a8a, #38bdf8); }
+    .grid-card:hover { box-shadow: 0 0 35px #38bdf8; }
+
+    .card h3 { margin-bottom: 15px; font-size: 1.2rem; }
+    .value { font-size: 3rem; font-weight: bold; }
+    .unit { margin-top: 5px; font-size: 1rem; }
+
+    .middle { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 25px; }
+    .panel { background: rgba(30, 41, 59, 0.85); padding: 25px; border-radius: 20px; transition: 0.4s; }
+    .panel:hover { transform: translateY(-8px); box-shadow: 0 0 30px rgba(56, 189, 248, 0.5); }
+    .panel h2 { margin-bottom: 20px; color: #38bdf8; }
+
+    .active-source { text-align: center; font-size: 3rem; font-weight: bold; color: #22c55e; }
+    .info { font-size: 1.1rem; line-height: 2; }
+
+    .loads { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .load-card {
+      background: linear-gradient(135deg, #312e81, #4c1d95);
+      border-radius: 20px; padding: 25px; text-align: center;
+      transition: all 0.4s ease; cursor: pointer;
+    }
+    .load-card:hover { transform: translateY(-12px) scale(1.03); box-shadow: 0 0 35px rgba(168, 85, 247, 0.9); }
+    .load-card h2 { margin-bottom: 15px; }
+    .load-status { font-size: 1.1rem; font-weight: bold; color: #22c55e; margin-bottom: 15px; }
+    .load-value { font-size: 2.5rem; font-weight: bold; }
+
+    .footer { text-align: center; margin-top: 30px; color: #94a3b8; }
+
+    @media(max-width: 900px) {
+      .middle, .loads { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>⚡ Hybrid Solar–Grid Energy Management & Monitoring System</h1>
+    <div class="system-status">
+      <span class="indicator online"></span>
+      <strong>LIVE CLOUD</strong>
+    </div>
+  </div>
+
+  <!-- SOURCE MONITORING -->
+  <div class="top-grid">
+    <div class="card solar-card">
+      <h3>☀ Solar Voltage</h3>
+      <div class="value" id="solar_vol">--</div>
+      <div class="unit">Volts</div>
+    </div>
+
+    <div class="card battery-card">
+      <h3>🔋 Battery Percentage</h3>
+      <div class="value" id="battery_level">--</div>
+    </div>
+
+    <div class="card grid-card">
+      <h3>Load Voltage</h3>
+      <div class="value" id="load_vol">--</div>
+      <div class="unit">Volts</div>
+    </div>
+  </div>
+
+  <!-- MIDDLE SECTION -->
+  <div class="middle">
+    <div class="panel">
+      <h2>⚡ Grid Status</h2>
+      <div class="active-source" id="grid_status">--</div>
+    </div>
+
+    <div class="panel">
+      <h2>System Information</h2>
+      <div class="info">
+        Total Load Power : <strong id="total_power">--</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADS -->
+  <div class="loads">
+    <div class="load-card">
+      <h2>💡 LOW PRIORITY LOAD</h2>
+      <div class="load-status" id="LP_STATUS">--</div>
+      <div class="load-value" id="LOAD1_power">--</div>
+    </div>
+
+    <div class="load-card">
+      <h2>💡 MEDIUM PRIORITY LOAD</h2>
+      <div class="load-status" id="MP_STATUS">--</div>
+      <div class="load-value" id="LOAD2_power">--</div>
+    </div>
+
+    <div class="load-card">
+      <h2>💡 HIGH PRIORITY LOAD</h2>
+      <div class="load-status" id="load3status">ON</div>
+      <div class="load-value" id="LOAD3_power">--</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Hybrid Energy Monitoring Dashboard
+  </div>
+
+  <script>
+    // 1. Configure Firebase
+    const firebaseConfig = {
+      databaseURL: "https://YOUR-PROJECT-ID-default-rtdb.firebaseio.com/"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 2. Real-time Firebase database listener
+    db.ref('/system_metrics').on('value', (snapshot) => {
+      const val = snapshot.val();
+      if (val) {
+        document.getElementById('solar_vol').innerText = val.solar_vol ? val.solar_vol + "V" : "--";
+        document.getElementById('battery_level').innerText = val.battery_level ? val.battery_level + "%" : "--";
+        document.getElementById('load_vol').innerText = val.load_vol ? val.load_vol + "V" : "--";
+        document.getElementById('grid_status').innerText = val.grid_status || "--";
+        document.getElementById('total_power').innerText = val.total_power ? val.total_power + "W" : "--";
+        document.getElementById('LOAD1_power').innerText = val.LOAD1_power ? val.LOAD1_power + "W" : "--";
+        document.getElementById('LOAD2_power').innerText = val.LOAD2_power ? val.LOAD2_power + "W" : "--";
+        document.getElementById('LOAD3_power').innerText = val.LOAD3_power ? val.LOAD3_power + "W" : "--";
+        document.getElementById('LP_STATUS').innerText = val.LP_STATUS || "--";
+        document.getElementById('MP_STATUS').innerText = val.MP_STATUS || "--";
+      }
+    });
+  </script>
+</body>
+</html>
